@@ -15,9 +15,6 @@ public class SensorReadingResource {
     private final String sensorId;
     private final DataStore dataStore = DataStore.getInstance();
 
-    @Context
-    private UriInfo uriInfo;
-
     public SensorReadingResource(String sensorId) {
         this.sensorId = sensorId;
     }
@@ -41,7 +38,7 @@ public class SensorReadingResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response addReading(SensorReading reading) {
+    public Response addReading(SensorReading reading, @Context UriInfo uriInfo) {
         Sensor sensor = dataStore.getSensors().get(sensorId);
         if (sensor == null) {
             Map<String, String> error = new HashMap<>();
@@ -51,14 +48,12 @@ public class SensorReadingResource {
             return Response.status(Response.Status.NOT_FOUND).entity(error).build();
         }
 
-        // Reject readings for sensors under maintenance
         if ("MAINTENANCE".equalsIgnoreCase(sensor.getStatus())) {
             throw new SensorUnavailableException(
                 "Sensor '" + sensorId + "' is currently under MAINTENANCE. No readings can be submitted."
             );
         }
 
-        // Auto-generate ID and timestamp if not provided
         if (reading.getId() == null || reading.getId().isBlank()) {
             reading.setId(UUID.randomUUID().toString());
         }
@@ -66,7 +61,6 @@ public class SensorReadingResource {
             reading.setTimestamp(System.currentTimeMillis());
         }
 
-        // Update parent sensor's currentValue to reflect latest reading
         sensor.setCurrentValue(reading.getValue());
 
         dataStore.getReadings()
