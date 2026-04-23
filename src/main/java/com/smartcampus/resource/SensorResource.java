@@ -6,8 +6,8 @@ import com.smartcampus.model.Sensor;
 import com.smartcampus.storage.DataStore;
 
 import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.*;
+import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -15,6 +15,9 @@ import java.util.stream.Collectors;
 public class SensorResource {
 
     private final DataStore dataStore = DataStore.getInstance();
+
+    @Context
+    private UriInfo uriInfo;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -68,7 +71,8 @@ public class SensorResource {
         dataStore.getSensors().put(sensor.getId(), sensor);
         dataStore.getReadings().put(sensor.getId(), new ArrayList<>());
 
-        return Response.status(Response.Status.CREATED).entity(sensor).build();
+        URI location = uriInfo.getAbsolutePathBuilder().path(sensor.getId()).build();
+        return Response.created(location).entity(sensor).build();
     }
 
     @GET

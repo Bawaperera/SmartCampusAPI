@@ -5,8 +5,8 @@ import com.smartcampus.model.Room;
 import com.smartcampus.storage.DataStore;
 
 import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.*;
+import java.net.URI;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,6 +15,9 @@ import java.util.Map;
 public class RoomResource {
 
     private final DataStore dataStore = DataStore.getInstance();
+
+    @Context
+    private UriInfo uriInfo;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -42,7 +45,8 @@ public class RoomResource {
             return Response.status(Response.Status.CONFLICT).entity(error).build();
         }
         dataStore.getRooms().put(room.getId(), room);
-        return Response.status(Response.Status.CREATED).entity(room).build();
+        URI location = uriInfo.getAbsolutePathBuilder().path(room.getId()).build();
+        return Response.created(location).entity(room).build();
     }
 
     @GET

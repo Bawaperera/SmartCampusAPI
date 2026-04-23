@@ -6,14 +6,17 @@ import com.smartcampus.model.SensorReading;
 import com.smartcampus.storage.DataStore;
 
 import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.*;
+import java.net.URI;
 import java.util.*;
 
 public class SensorReadingResource {
 
     private final String sensorId;
     private final DataStore dataStore = DataStore.getInstance();
+
+    @Context
+    private UriInfo uriInfo;
 
     public SensorReadingResource(String sensorId) {
         this.sensorId = sensorId;
@@ -70,6 +73,7 @@ public class SensorReadingResource {
                 .computeIfAbsent(sensorId, k -> new ArrayList<>())
                 .add(reading);
 
-        return Response.status(Response.Status.CREATED).entity(reading).build();
+        URI location = uriInfo.getAbsolutePathBuilder().path(reading.getId()).build();
+        return Response.created(location).entity(reading).build();
     }
 }
